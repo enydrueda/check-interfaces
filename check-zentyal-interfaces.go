@@ -10,6 +10,7 @@ import (
     "net/smtp"
     "github.com/ashwanthkumar/slack-go-webhook"
     "github.com/joho/godotenv"
+    "strings"
 )
 
 func check(e error) {
@@ -18,15 +19,14 @@ func check(e error) {
     }
 }
 
-func send(text string) {
-    fmt.Println("enviando correo")
+func sendMail(text string) {
     auth := smtp.PlainAuth(
         "",
         os.Getenv("EMAIL_USER"),
         os.Getenv("EMAIL_PASSWORD"),
         os.Getenv("EMAIL_HOST"),
     )
-    fmt.Println(text)
+
     err := smtp.SendMail(
         os.Getenv("EMAIL_HOST") + ":" + os.Getenv("EMAIL_PORT"),
         auth,
@@ -34,13 +34,13 @@ func send(text string) {
         []string{os.Getenv("EMAIL_FROMT")},
         []byte(text),
     )
+
     fmt.Println("correo enviado")
     check(err)
 }
 
 func sendSlack(text string) {
     webhookUrl := os.Getenv("SLACK_WEBHOOK")
-    fmt.Println("enviando slack")
 
     payload := slack.Payload {
       Text: text,
@@ -57,66 +57,65 @@ func sendSlack(text string) {
     }
 }
 
+func interfaceInEnv(a string, list []string) bool {
+    for _, b := range list {
+        if b == a {
+            return true
+        }
+    }
+    return false
+}
+
 func timeFile(w http.ResponseWriter, r *http.Request) {
-    fmt.Println("Endpoint Hit: homePage4")
     inter := r.URL.Query().Get("inter")
 
-    if inter == "" && inter != "eth0" && inter != "eth2" {
-        fmt.Fprintf(w, "False")
+	if !interfaceInEnv(inter, strings.Split(os.Getenv("INTERFACES"), ",")) {
         return
-    }
+	}
 
     info, err := os.Stat("/tmp/" + inter)
 
     if err != nil {
-        send(err.Error())
+        sendMail(err.Error())
         sendSlack(err.Error())
-        fmt.Fprintf(w, "False")
         return
     }
 
     duration := time.Since(info.ModTime())
-    fmt.Println(duration.Minutes())
 
     if duration.Minutes() > 4 {
-        send("Error en interfaz " + inter)
+        sendMail("Error en interfaz " + inter)
         sendSlack("Error en interfaz " + inter)
-        fmt.Fprintf(w, "False")
         return
     }
 
-    fmt.Fprintf(w, "True")
     return
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
-    fmt.Println("Endpoint Hit: homePage3")
     inter := r.URL.Query().Get("inter")
 
-    if inter == "" && inter != "eth0" && inter != "eth2" {
-        fmt.Fprintf(w, "False")
+    if !interfaceInEnv(inter, strings.Split(os.Getenv("INTERFACES"), ",")) {
         return
-    }
+	}
 
     d1 := []byte("ready")
     err := ioutil.WriteFile("/tmp/" + inter, d1, 0644)
     check(err)
 
-    fmt.Fprintf(w, "True")
     return
 }
 
 func handleRequests() {
-    fmt.Println("Endpoint Hit: homePage2")
     http.HandleFunc("/", homePage)
     http.HandleFunc("/timeFile", timeFile)
-    log.Fatal(http.ListenAndServe(":9001", nil))
+    log.Fatal(http.ListenAndServe(":" + os.Getenv("SERVER_PORT"), nil))
 }
 
 func main() {
-	fmt.Println(os.Getenv("SLACK_WEBHOOK"))
 	err := godotenv.Load()
 	check(err)
-    fmt.Println("Endpoint Hit: homePage1")
+
+    fmt.Println("Run")
     handleRequests()
 }

@@ -17,18 +17,17 @@ cd <WORKSPACE>/src
 git clone git@gitlab.services4geeks.co:devops/check-zentyal-interfaces.git
 ```
 
-Editar el puerto y credenciales de correo smtp
-
 Compilar
 --------
 ```bash
 go install check-zentyal-interfaces
 ```
-Resultando el archivo ejecutable "check-zentyal-interfaces" en la ruba <WORKSPACE>/bin/
+Resultando el archivo ejecutable "check-zentyal-interfaces" en la ruta <WORKSPACE>/bin/
 
 Uso
 ---
-Ejecutar el "ejecutable" con lo cual se levantara un servidor en el puerto configurado durante la edicion, configurar los CronJobs requeridos en el zentyal y el servidor en donde se ejecuta el archivo
+Crear un archivo .env en la locación en la que se encuentra el "ejecutable", ver .env.example
+Correr el "ejecutable" con lo cual se levantara un servidor en el puerto configurado, crear los CronJobs requeridos en el zentyal y el servidor en donde se ejecuta el archivo
 
 CronJob Zentyal
 ---------------
@@ -43,5 +42,3 @@ CronJob Server
 * * * * * curl <DOMAIN>:<PORT>/timeFile?inter=eth0
 * * * * * curl <DOMAIN>:<PORT>/timeFile?inter=eth2
 ```
-
-
