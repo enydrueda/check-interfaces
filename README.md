@@ -3,6 +3,11 @@ Script en experimental en GoLang para chequear curl desde las interfaces eth0 y 
 
 Se requiere Go insalado [https://golang.org/doc/install](https://golang.org/doc/install)
 
+Dependencias
+------------
+- github.com/joho/godotenv
+- github.com/ashwanthkumar/slack-go-webhook
+
 Edicion
 -------
 clonar el proyecto el workspace
