@@ -20,6 +20,7 @@ func check(e error) {
 }
 
 func sendMail(text string) {
+    fmt.Println("enviando")
     auth := smtp.PlainAuth(
         "",
         os.Getenv("EMAIL_USER"),
@@ -31,7 +32,7 @@ func sendMail(text string) {
         os.Getenv("EMAIL_HOST") + ":" + os.Getenv("EMAIL_PORT"),
         auth,
         os.Getenv("EMAIL_TO"),
-        []string{os.Getenv("EMAIL_FROMT")},
+        []string{os.Getenv("EMAIL_FROM")},
         []byte(text),
     )
 
@@ -40,6 +41,7 @@ func sendMail(text string) {
 }
 
 func sendSlack(text string) {
+    fmt.Println("enviando slack")
     webhookUrl := os.Getenv("SLACK_WEBHOOK")
 
     payload := slack.Payload {
@@ -58,6 +60,7 @@ func sendSlack(text string) {
 }
 
 func interfaceInEnv(a string, list []string) bool {
+    fmt.Println("funcion interfaceInEnv")
     for _, b := range list {
         if b == a {
             return true
@@ -67,15 +70,20 @@ func interfaceInEnv(a string, list []string) bool {
 }
 
 func timeFile(w http.ResponseWriter, r *http.Request) {
+    fmt.Println("funcion timeFile")
     inter := r.URL.Query().Get("inter")
 
-	if !interfaceInEnv(inter, strings.Split(os.Getenv("INTERFACES"), ",")) {
+    if interfaceInEnv(inter, strings.Split(os.Getenv("INTERFACES"), ",")) == false {
+        fmt.Println("fallo1")
+        fmt.Println(os.Getenv("INTERFACES"))
+        fmt.Println(inter)
         return
-	}
+    }
 
     info, err := os.Stat("/tmp/" + inter)
 
     if err != nil {
+        fmt.Println("fallo2")
         sendMail(err.Error())
         sendSlack(err.Error())
         return
@@ -95,9 +103,12 @@ func timeFile(w http.ResponseWriter, r *http.Request) {
 func homePage(w http.ResponseWriter, r *http.Request) {
     inter := r.URL.Query().Get("inter")
 
-    if !interfaceInEnv(inter, strings.Split(os.Getenv("INTERFACES"), ",")) {
+    if !interfaceInEnv(inter, strings.Split(os.Getenv("INTERFACES"), ",")) == false {
+    	fmt.Println("fallo1")
+        fmt.Println(os.Getenv("INTERFACES"))
+        fmt.Println(inter)
         return
-	}
+    }
 
     d1 := []byte("ready")
     err := ioutil.WriteFile("/tmp/" + inter, d1, 0644)
